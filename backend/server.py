@@ -53,8 +53,8 @@ async def health_check():
     return {"status": "ok", "service": "Laissez API"}
 
 @app.post("/api/agents")
-async def create_agent_config(config: AgentConfig):
-    """Save agent configuration to Supabase"""
+async def create_agent_config(config: AgentConfig, request: Request):
+    """Save agent configuration to Supabase and set up Telegram webhook"""
     if not supabase:
         raise HTTPException(status_code=500, detail="Supabase not configured")
     
@@ -72,10 +72,22 @@ async def create_agent_config(config: AgentConfig):
         
         response = supabase.table("agents").insert(data).execute()
         
+        # Set up Telegram webhook
+        # Get the host from the request (works in local, preview, and production)
+        host = request.headers.get("host", "localhost:8001")
+        scheme = "https" if "preview.emergentagent.com" in host or "localhost" not in host else "http"
+        webhook_url = f"{scheme}://{host}/api/telegram-webhook/{config.bot_token}"
+        
+        webhook_result = await setup_telegram_webhook(config.bot_token, webhook_url)
+        
         return {
             "success": True,
             "message": "Agent configuration saved successfully",
-            "data": response.data
+            "data": response.data,
+            "webhook_info": {
+                "webhook_url": webhook_url,
+                "telegram_response": webhook_result
+            }
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to save configuration: {str(e)}")
