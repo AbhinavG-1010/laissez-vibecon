@@ -104,6 +104,40 @@ async def get_agent_configs():
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch configurations: {str(e)}")
 
+
+@app.post("/api/telegram-webhook/{bot_token}")
+async def telegram_webhook(bot_token: str, request: Request):
+    """
+    Receive updates from Telegram and reply with greeting.
+    Telegram will POST updates to this endpoint.
+    """
+    try:
+        # Parse the incoming update from Telegram
+        update_data = await request.json()
+        
+        # Check if there's a message with text
+        if "message" in update_data and "text" in update_data["message"]:
+            chat_id = update_data["message"]["chat"]["id"]
+            
+            # Send reply using Telegram API
+            async with httpx.AsyncClient() as client:
+                await client.post(
+                    f"https://api.telegram.org/bot{bot_token}/sendMessage",
+                    json={
+                        "chat_id": chat_id,
+                        "text": "Hello from Abhinav and Matthew"
+                    }
+                )
+        
+        # Always return 200 OK to Telegram
+        return {"ok": True}
+    
+    except Exception as e:
+        print(f"Error processing webhook: {e}")
+        # Return 200 anyway to avoid Telegram retrying
+        return {"ok": False, "error": str(e)}
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8001)
