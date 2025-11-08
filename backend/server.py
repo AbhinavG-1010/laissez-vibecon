@@ -34,6 +34,20 @@ class AgentConfig(BaseModel):
     bot_token: str
     price: float
 
+
+async def setup_telegram_webhook(bot_token: str, webhook_url: str) -> dict:
+    """Set up Telegram webhook for a bot"""
+    async with httpx.AsyncClient() as client:
+        response = await client.post(
+            f"https://api.telegram.org/bot{bot_token}/setWebhook",
+            json={"url": webhook_url}
+        )
+        result = response.json()
+        if not result.get("ok"):
+            raise Exception(f"Failed to set webhook: {result.get('description')}")
+        return result
+
+
 @app.get("/api/health")
 async def health_check():
     return {"status": "ok", "service": "Laissez API"}
