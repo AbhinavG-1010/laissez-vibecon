@@ -53,13 +53,14 @@ metadata:
   run_ui: false
 
 test_plan:
-  current_focus:
-    - "Telegram Bot Webhook Integration - Save Agent Configuration"
-    - "Telegram Bot Webhook Endpoint"
-    - "Health Check Endpoint"
+  current_focus: []
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
+  completed_tasks:
+    - "Telegram Bot Webhook Integration - Save Agent Configuration"
+    - "Telegram Bot Webhook Endpoint"
+    - "Health Check Endpoint"
 
 agent_communication:
   - agent: "testing"
