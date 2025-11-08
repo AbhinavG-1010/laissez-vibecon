@@ -73,10 +73,15 @@ async def create_agent_config(config: AgentConfig, request: Request):
         response = supabase.table("agents").insert(data).execute()
         
         # Set up Telegram webhook
-        # Get the host from the request (works in local, preview, and production)
-        host = request.headers.get("host", "localhost:8001")
-        scheme = "https" if "preview.emergentagent.com" in host or "localhost" not in host else "http"
-        webhook_url = f"{scheme}://{host}/api/telegram-webhook/{config.bot_token}"
+        # Try to get base URL from environment (for preview/production)
+        base_url = os.environ.get("base_url")
+        if base_url:
+            webhook_url = f"{base_url}/api/telegram-webhook/{config.bot_token}"
+        else:
+            # Fallback to request host
+            host = request.headers.get("host", "localhost:8001")
+            scheme = "https" if "preview.emergentagent.com" in host or "emergentagent.com" in host else "http"
+            webhook_url = f"{scheme}://{host}/api/telegram-webhook/{config.bot_token}"
         
         webhook_result = await setup_telegram_webhook(config.bot_token, webhook_url)
         
