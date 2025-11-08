@@ -1,9 +1,10 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, HttpUrl
 from supabase import create_client, Client
 import os
 from dotenv import load_dotenv
+import httpx
 
 load_dotenv()
 
