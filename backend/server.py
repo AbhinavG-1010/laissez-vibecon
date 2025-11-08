@@ -72,18 +72,28 @@ async def create_agent_config(config: AgentConfig, request: Request):
         
         response = supabase.table("agents").insert(data).execute()
         
-        # Set up Telegram webhook
-        # Try to get webhook base URL from environment (for preview/production)
-        webhook_base = os.environ.get("WEBHOOK_BASE_URL") or os.environ.get("base_url")
-        if webhook_base:
-            webhook_url = f"{webhook_base}/api/telegram-webhook/{config.bot_token}"
-        else:
-            # Fallback to request host
-            host = request.headers.get("host", "localhost:8001")
-            scheme = "https" if "preview.emergentagent.com" in host or "emergentagent.com" in host else "http"
-            webhook_url = f"{scheme}://{host}/api/telegram-webhook/{config.bot_token}"
+        # Set up Telegram webhook - dynamically detect the public URL
+        # Check for proxy headers first (set by Kubernetes ingress / load balancer)
+        forwarded_proto = request.headers.get("x-forwarded-proto", "")
+        forwarded_host = request.headers.get("x-forwarded-host", "")
         
-        print(f"Setting webhook URL: {webhook_url}")
+        # Determine scheme (http vs https)
+        if forwarded_proto:
+            scheme = forwarded_proto
+        else:
+            # Assume https for emergentagent.com domains, http for localhost
+            host = request.headers.get("host", "localhost:8001")
+            scheme = "https" if "emergentagent.com" in host else "http"
+        
+        # Determine host/domain
+        if forwarded_host:
+            host = forwarded_host
+        else:
+            host = request.headers.get("host", "localhost:8001")
+        
+        webhook_url = f"{scheme}://{host}/api/telegram-webhook/{config.bot_token}"
+        
+        print(f"Setting webhook URL: {webhook_url} (detected from request headers)")
         webhook_result = await setup_telegram_webhook(config.bot_token, webhook_url)
         
         return {
