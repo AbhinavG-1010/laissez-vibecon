@@ -184,24 +184,11 @@ function App() {
               >
                 {isSubmitting ? 'Saving...' : 'Save Configuration'}
               </Button>
-
-              {/* Message Display */}
-              {message.text && (
-                <div
-                  data-testid="message-display"
-                  className={`p-3 rounded-md text-sm ${
-                    message.type === 'success'
-                      ? 'bg-accent text-accent-foreground border border-border'
-                      : 'bg-destructive/10 text-destructive border border-destructive/20'
-                  }`}
-                >
-                  {message.text}
-                </div>
-              )}
             </form>
           </CardContent>
         </Card>
       </div>
+      <Toaster />
     </div>
   );
 }
