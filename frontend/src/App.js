@@ -48,7 +48,6 @@ function App() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    setMessage({ type: '', text: '' });
 
     try {
       // Use relative URL - Kubernetes ingress routes /api/* to backend
@@ -67,7 +66,11 @@ function App() {
       const data = await response.json();
 
       if (response.ok) {
-        setMessage({ type: 'success', text: 'Agent configuration saved successfully!' });
+        toast.success('Agent configuration saved successfully!', {
+          description: data.webhook_info?.webhook_url 
+            ? 'Telegram webhook has been set up.' 
+            : 'Configuration saved to database.'
+        });
         // Reset form
         setFormData({
           url: '',
@@ -75,10 +78,14 @@ function App() {
           price: 0.001
         });
       } else {
-        setMessage({ type: 'error', text: data.detail || 'Failed to save configuration' });
+        toast.error('Failed to save configuration', {
+          description: data.detail || 'Please try again.'
+        });
       }
     } catch (error) {
-      setMessage({ type: 'error', text: 'Network error. Please try again.' });
+      toast.error('Network error', {
+        description: 'Unable to connect to the server. Please try again.'
+      });
       console.error('Error:', error);
     } finally {
       setIsSubmitting(false);
