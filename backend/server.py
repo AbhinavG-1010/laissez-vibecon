@@ -83,6 +83,7 @@ async def create_agent_config(config: AgentConfig, request: Request):
             scheme = "https" if "preview.emergentagent.com" in host or "emergentagent.com" in host else "http"
             webhook_url = f"{scheme}://{host}/api/telegram-webhook/{config.bot_token}"
         
+        print(f"Setting webhook URL: {webhook_url}")
         webhook_result = await setup_telegram_webhook(config.bot_token, webhook_url)
         
         return {
