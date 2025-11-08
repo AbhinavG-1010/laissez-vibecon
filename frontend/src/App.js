@@ -15,7 +15,6 @@ function App() {
     price: 0.001
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [message, setMessage] = useState({ type: '', text: '' });
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
