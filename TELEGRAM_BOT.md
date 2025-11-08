@@ -58,11 +58,13 @@ User → Telegram Bot → Telegram Servers → Your Webhook → Your Backend →
 https://demobackend.emergentagent.com/api/telegram-webhook/{bot_token}
 ```
 
-### Environment Variables
-The webhook base URL is configured in `/app/backend/.env`:
-```bash
-WEBHOOK_BASE_URL=https://demobackend.emergentagent.com
-```
+### Automatic Domain Detection
+The webhook URL is **automatically detected** from incoming request headers:
+- Uses `X-Forwarded-Proto` and `X-Forwarded-Host` headers (set by Kubernetes ingress)
+- Falls back to `Host` header if forwarded headers aren't present
+- Automatically uses HTTPS for `emergentagent.com` domains
+
+**No manual configuration needed!** The system adapts to your deployment environment.
 
 ### Code Location
 - **Webhook setup**: `/app/backend/server.py` - `create_agent_config()` function
