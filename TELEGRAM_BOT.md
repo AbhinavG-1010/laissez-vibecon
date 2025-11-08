@@ -123,6 +123,15 @@ When saving an agent, you get:
 }
 ```
 
+## UI Features
+
+### Toast Notifications
+The app now uses **Sonner** (Shadcn UI) for elegant toast notifications:
+- ✅ Success toast when agent is saved (with webhook confirmation)
+- ❌ Error toast if something goes wrong (with detailed description)
+- 🔔 Appears in bottom-right corner with smooth animations
+- Auto-dismisses after a few seconds
+
 ## Next Steps
 
 This is a minimal implementation for the hackathon. Future enhancements could include:
