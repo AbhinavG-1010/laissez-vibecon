@@ -287,6 +287,7 @@ def run_all_tests() -> Dict[str, Any]:
     results = {
         "health_check": test_health_check(),
         "agent_configuration": test_save_agent_configuration(),
+        "webhook_url_pattern": test_webhook_url_pattern(),
         "telegram_webhook": test_telegram_webhook_endpoint()
     }
     
