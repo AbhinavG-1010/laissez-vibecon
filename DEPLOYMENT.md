@@ -109,9 +109,11 @@ All endpoints accessible at `https://your-domain/api/`:
     "price": 0.005
   }
   ```
+  **Note**: This endpoint automatically sets up a Telegram webhook for the bot!
 
 - `GET /api/agents` - Get all configurations
 - `GET /api/health` - Health check
+- `POST /api/telegram-webhook/{bot_token}` - Telegram webhook endpoint (automatically configured)
 
 ### Database Schema
 
