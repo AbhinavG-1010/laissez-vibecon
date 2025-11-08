@@ -89,8 +89,9 @@ sudo supervisorctl status
 SUPABASE_URL=https://mhycwrnqmzpkteewrgok.supabase.co
 SUPABASE_KEY=eyJhbGc...
 MONGO_URL=mongodb://localhost:27017  # Not used but required
-WEBHOOK_BASE_URL=https://demobackend.emergentagent.com  # For Telegram webhooks
 ```
+
+**Note**: Telegram webhook URL is now **automatically detected** from request headers (no manual configuration needed!)
 
 **Frontend** (`/app/frontend/.env`):
 ```bash
