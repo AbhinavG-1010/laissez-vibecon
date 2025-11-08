@@ -45,8 +45,9 @@ function App() {
     setMessage({ type: '', text: '' });
 
     try {
-      // Use relative URL for deployment compatibility
-      const response = await fetch('/api/agents', {
+      // Use REACT_APP_BACKEND_URL from environment
+      const backendUrl = process.env.REACT_APP_BACKEND_URL;
+      const response = await fetch(`${backendUrl}/api/agents`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
