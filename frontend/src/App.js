@@ -45,9 +45,8 @@ function App() {
     setMessage({ type: '', text: '' });
 
     try {
-      // Use REACT_APP_BACKEND_URL from environment
-      const backendUrl = process.env.REACT_APP_BACKEND_URL;
-      const response = await fetch(`${backendUrl}/api/agents`, {
+      // Use relative URL - Kubernetes ingress routes /api/* to backend
+      const response = await fetch('/api/agents', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
