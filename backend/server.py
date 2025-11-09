@@ -375,12 +375,17 @@ async def telegram_webhook(bot_token: str, request: Request):
     try:
         # Parse the incoming update from Telegram
         update_data = await request.json()
+        print(f"\n{'='*60}")
+        print(f"Telegram webhook received for bot token: {bot_token[:20]}...")
         
         # Check if there's a message with text
         if "message" in update_data and "text" in update_data["message"]:
             chat_id = update_data["message"]["chat"]["id"]
             user_message = update_data["message"]["text"]
             telegram_user_id = str(update_data["message"]["from"]["id"])
+            
+            print(f"Message from Telegram user {telegram_user_id}: {user_message[:50]}...")
+            print(f"Chat ID: {chat_id}")
             
             # Check if telegram account is linked
             if supabase:
