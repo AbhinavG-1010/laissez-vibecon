@@ -398,19 +398,23 @@ async def telegram_webhook(bot_token: str, request: Request):
                         # Not linked - create pending link and send instructions
                         print(f"Telegram user {telegram_user_id} not linked, creating pending link...")
                         
-                        code = generate_link_code()
                         expires_at = (datetime.utcnow() + timedelta(hours=24)).isoformat()
                         
-                        # Create pending link
+                        # Create pending link (code will be auto-generated as UUID by database)
                         pending_data = {
-                            "code": code,
                             "platform": "telegram",
                             "platform_user_id": telegram_user_id,
                             "expires_at": expires_at
                         }
                         
                         insert_result = supabase.table("pending_links").insert(pending_data).execute()
-                        print(f"✓ Pending link created with code: {code[:20]}...")
+                        
+                        # Get the generated code from the inserted record
+                        if insert_result.data and len(insert_result.data) > 0:
+                            code = insert_result.data[0]["code"]
+                            print(f"✓ Pending link created with code: {code}")
+                        else:
+                            raise Exception("Failed to create pending link")
                         
                         # Construct the frontend URL
                         # The webhook comes to backend (port 8001), but we need to link to frontend
