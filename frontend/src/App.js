@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { usePrivy } from '@privy-io/react-auth';
 import LandingPage from './pages/LandingPage';
+import AuthPage from './pages/AuthPage';
 import DashboardPage from './pages/DashboardPage';
 import AgentConfigPage from './pages/AgentConfigPage';
 import LinkAccountPage from './pages/LinkAccountPage';
