@@ -416,22 +416,32 @@ async def telegram_webhook(bot_token: str, request: Request):
                         else:
                             raise Exception("Failed to create pending link")
                         
-                        # Construct the frontend URL
-                        # The webhook comes to backend (port 8001), but we need to link to frontend
-                        forwarded_proto = request.headers.get("x-forwarded-proto", "")
-                        forwarded_host = request.headers.get("x-forwarded-host", "")
+                        # Construct the frontend URL using the same domain as the webhook request
+                        # The webhook is received at: {scheme}://{host}/api/telegram-webhook/{token}
+                        # We need to link to:        {scheme}://{host}/link?code={code}
+                        forwarded_proto = request.headers.get("x-forwarded-proto")
+                        forwarded_host = request.headers.get("x-forwarded-host")
                         
-                        if forwarded_host and "emergentagent.com" in forwarded_host:
-                            # Production: use the same domain
-                            app_url = f"https://{forwarded_host}"
-                        elif forwarded_host:
-                            app_url = f"{forwarded_proto or 'https'}://{forwarded_host}"
+                        # Determine scheme
+                        if forwarded_proto:
+                            scheme = forwarded_proto
                         else:
-                            # Local development: use localhost:3000 for frontend
-                            app_url = "http://localhost:3000"
+                            # Check if running on emergentagent.com or similar production domain
+                            host = request.headers.get("host", "")
+                            scheme = "https" if ("emergentagent.com" in host or not host.startswith("localhost")) else "http"
                         
+                        # Determine host
+                        if forwarded_host:
+                            host = forwarded_host
+                        else:
+                            host = request.headers.get("host", "localhost:3000")
+                            # Remove port if it's the backend port (8001), as frontend is on same domain
+                            if ":8001" in host:
+                                host = host.replace(":8001", ":3000")
+                        
+                        app_url = f"{scheme}://{host}"
                         link_url = f"{app_url}/link?code={code}"
-                        print(f"✓ Link URL: {link_url}")
+                        print(f"✓ Constructed link URL: {link_url}")
                         
                         response_text = (
                             f"🔗 Account Linking Required\n\n"
