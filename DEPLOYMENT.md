@@ -7,12 +7,12 @@ Your app is configured to work seamlessly in the Emergent platform's preview and
 ### How It Works
 
 **URL Structure:**
-- Preview: `https://agent-setup-2.preview.emergentagent.com` (or similar)
-- Your domain: `https://*.preview.emergentagent.com`
+- Preview: `https://laissez-config.preview.emergentagent.com` (or similar)
+- Your domain: `https://laissez-config.preview.emergentagent.com`
 
 **Architecture:**
 ```
-Browser Request → https://your-app.preview.emergentagent.com/api/agents
+Browser Request → https://laissez-config.preview.emergentagent.com/api/agents
                                                             ↓
                                         Kubernetes Ingress (routes /api/*)
                                                             ↓
@@ -40,14 +40,14 @@ Browser Request → https://your-app.preview.emergentagent.com/api/agents
 
 The app automatically adapts to:
 - Local development: `http://localhost:3000` → `http://localhost:8001`
-- Preview: `https://*.preview.emergentagent.com` → Same domain `/api/*`
+- Preview: `https://laissez-config.preview.emergentagent.com` → Same domain `/api/*`
 - Production: Same domain routing via Kubernetes ingress
 
 ### Testing Your Deployment
 
 1. **Access your preview URL:**
    ```
-   https://agent-setup-2.preview.emergentagent.com
+   https://laissez-config.preview.emergentagent.com
    ```
 
 2. **Fill in the form:**
@@ -91,6 +91,8 @@ SUPABASE_KEY=eyJhbGc...
 MONGO_URL=mongodb://localhost:27017  # Not used but required
 ```
 
+**Note**: Telegram webhook URL is now **automatically detected** from request headers (no manual configuration needed!)
+
 **Frontend** (`/app/frontend/.env`):
 ```bash
 # Not actively used - app uses relative URLs
@@ -109,9 +111,11 @@ All endpoints accessible at `https://your-domain/api/`:
     "price": 0.005
   }
   ```
+  **Note**: This endpoint automatically sets up a Telegram webhook for the bot!
 
 - `GET /api/agents` - Get all configurations
 - `GET /api/health` - Health check
+- `POST /api/telegram-webhook/{bot_token}` - Telegram webhook endpoint (automatically configured)
 
 ### Database Schema
 
@@ -139,6 +143,6 @@ CREATE TABLE agents (
 ## Success!
 
 Your app is production-ready and will work seamlessly at:
-`https://agent-setup-2.preview.emergentagent.com`
+`https://laissez-config.preview.emergentagent.com`
 
 No additional configuration needed! 🎉

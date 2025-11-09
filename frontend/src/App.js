@@ -4,6 +4,8 @@ import { Button } from './components/ui/button';
 import { Input } from './components/ui/input';
 import { Label } from './components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from './components/ui/card';
+import { Toaster } from './components/ui/sonner';
+import { toast } from 'sonner';
 import './App.css';
 
 function App() {
@@ -13,7 +15,6 @@ function App() {
     price: 0.001
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [message, setMessage] = useState({ type: '', text: '' });
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -47,7 +48,6 @@ function App() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    setMessage({ type: '', text: '' });
 
     try {
       // Use relative URL - Kubernetes ingress routes /api/* to backend
@@ -66,7 +66,11 @@ function App() {
       const data = await response.json();
 
       if (response.ok) {
-        setMessage({ type: 'success', text: 'Agent configuration saved successfully!' });
+        toast.success('Agent configuration saved successfully!', {
+          description: data.webhook_info?.webhook_url 
+            ? 'Telegram webhook has been set up.' 
+            : 'Configuration saved to database.'
+        });
         // Reset form
         setFormData({
           url: '',
@@ -74,10 +78,14 @@ function App() {
           price: 0.001
         });
       } else {
-        setMessage({ type: 'error', text: data.detail || 'Failed to save configuration' });
+        toast.error('Failed to save configuration', {
+          description: data.detail || 'Please try again.'
+        });
       }
     } catch (error) {
-      setMessage({ type: 'error', text: 'Network error. Please try again.' });
+      toast.error('Network error', {
+        description: 'Unable to connect to the server. Please try again.'
+      });
       console.error('Error:', error);
     } finally {
       setIsSubmitting(false);
@@ -176,24 +184,11 @@ function App() {
               >
                 {isSubmitting ? 'Saving...' : 'Save Configuration'}
               </Button>
-
-              {/* Message Display */}
-              {message.text && (
-                <div
-                  data-testid="message-display"
-                  className={`p-3 rounded-md text-sm ${
-                    message.type === 'success'
-                      ? 'bg-accent text-accent-foreground border border-border'
-                      : 'bg-destructive/10 text-destructive border border-destructive/20'
-                  }`}
-                >
-                  {message.text}
-                </div>
-              )}
             </form>
           </CardContent>
         </Card>
       </div>
+      <Toaster />
     </div>
   );
 }
