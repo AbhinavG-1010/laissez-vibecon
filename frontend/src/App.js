@@ -4,6 +4,7 @@ import { usePrivy } from '@privy-io/react-auth';
 import LandingPage from './pages/LandingPage';
 import AuthPage from './pages/AuthPage';
 import DashboardPage from './pages/DashboardPage';
+import DashboardPreview from './pages/DashboardPreview';
 import AgentConfigPage from './pages/AgentConfigPage';
 import LinkAccountPage from './pages/LinkAccountPage';
 
