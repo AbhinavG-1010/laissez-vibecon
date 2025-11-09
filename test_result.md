@@ -28,6 +28,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ PASS - Telegram webhook endpoint /api/telegram-webhook/{bot_token} working correctly. Accepts POST requests with Telegram update payload and returns {ok: true} as expected. Endpoint properly handles chat messages and responds appropriately."
+      - working: true
+        agent: "testing"
+        comment: "✅ PASS - LLM FALLBACK FUNCTIONALITY VERIFIED - Webhook endpoint successfully proxies messages to agent URLs and falls back to GPT-5-mini when agent URL fails. Test confirmed: 1) Agent lookup from Supabase working correctly 2) Agent URL proxy attempted (logs show 'Agent URL proxy error') 3) LLM fallback triggered automatically 4) Webhook returns {ok: true} in all scenarios 5) Backend logs confirm proper error handling and fallback execution. All three test scenarios from review request passed successfully."
 
   - task: "Health Check Endpoint"
     implemented: true
