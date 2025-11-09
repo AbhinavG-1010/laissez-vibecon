@@ -89,13 +89,16 @@ The webhook URL is **automatically detected** from incoming request headers:
 - **Webhook setup**: `/app/backend/server.py` - `create_agent_config()` function
 - **Message handler**: `/app/backend/server.py` - `telegram_webhook()` function
 
-### Response Message
-Currently hardcoded to: `"Hello from Abhinav and Matthew"`
+### Response Handling
 
-To customize the message, edit line 127 in `/app/backend/server.py`:
-```python
-"text": "Hello from Abhinav and Matthew"  # Change this!
-```
+**Primary Response (Agent URL):**
+The bot proxies messages to your configured agent URL and uses its response.
+
+**Fallback Response (LLM):**
+If your agent URL is unavailable, GPT-5-mini generates a helpful fallback response that:
+- Acknowledges the agent is unavailable
+- Provides the best possible answer to the user's query
+- Maintains a helpful and empathetic tone
 
 ## Troubleshooting
 
