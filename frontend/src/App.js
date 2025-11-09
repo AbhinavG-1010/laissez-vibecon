@@ -65,6 +65,14 @@ function App() {
         }
       />
       <Route
+        path="/auth"
+        element={
+          <PublicRoute>
+            <AuthPage />
+          </PublicRoute>
+        }
+      />
+      <Route
         path="/dashboard"
         element={
           <RequireAuth>
