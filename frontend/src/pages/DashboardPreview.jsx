@@ -168,24 +168,14 @@ export default function DashboardPreview() {
               <h2 className="text-lg font-normal text-gray-300 tracking-wide">WALLET BALANCE</h2>
             </div>
             <p className="text-2xl font-light text-gray-200 mb-4">$25.00</p>
-            <div className="flex gap-3">
-              <Button 
-                size="sm" 
-                className="bg-transparent border border-gray-600 text-gray-300 hover:bg-gray-800 rounded-full px-4 py-2 text-sm font-normal"
-                data-testid="add-funds-button"
-              >
-                <Plus className="h-3 w-3 mr-1" />
-                Add
-              </Button>
-              <Button 
-                size="sm"
-                className="bg-transparent border border-gray-600 text-gray-300 hover:bg-gray-800 rounded-full px-4 py-2 text-sm font-normal"
-                data-testid="withdraw-funds-button"
-              >
-                <Minus className="h-3 w-3 mr-1" />
-                Withdraw
-              </Button>
-            </div>
+            <Button 
+              size="sm" 
+              className="bg-transparent border border-gray-600 text-gray-300 hover:bg-gray-800 rounded-full px-4 py-2 text-sm font-normal"
+              data-testid="add-funds-button"
+            >
+              <Plus className="h-3 w-3 mr-1" />
+              Add Funds
+            </Button>
           </div>
         </div>
 
