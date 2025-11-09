@@ -8,6 +8,7 @@ import httpx
 import secrets
 from datetime import datetime, timedelta
 from typing import Optional
+import jwt
 
 load_dotenv()
 
@@ -27,6 +28,9 @@ PRIVY_APP_ID = os.environ.get("PRIVY_APP_ID")
 PRIVY_APP_SECRET = os.environ.get("PRIVY_APP_SECRET")
 supabase_url = os.environ.get("SUPABASE_URL")
 supabase_key = os.environ.get("SUPABASE_KEY")
+
+# Cache for Privy verification key
+_privy_verification_key = None
 
 if not supabase_url or not supabase_key:
     print("Warning: Supabase credentials not found in environment variables")
