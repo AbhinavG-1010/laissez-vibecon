@@ -100,6 +100,54 @@ If your agent URL is unavailable, GPT-5-mini generates a helpful fallback respon
 - Provides the best possible answer to the user's query
 - Maintains a helpful and empathetic tone
 
+## Creating a Compatible Agent
+
+Your agent URL must implement this simple API contract:
+
+### Endpoint
+- Method: `POST`
+- URL: Your configured agent URL (e.g., `https://my-agent.example.com`)
+
+### Request Format
+```json
+{
+  "input": "<user's telegram message>"
+}
+```
+
+### Response Format
+```json
+{
+  "output": "<your agent's response>"
+}
+```
+
+### Example Implementation (FastAPI)
+```python
+from fastapi import FastAPI
+from pydantic import BaseModel
+
+app = FastAPI()
+
+class AgentRequest(BaseModel):
+    input: str
+
+@app.post("/")
+async def handle_message(request: AgentRequest):
+    # Process the input and generate response
+    user_message = request.input
+    
+    # Your agent logic here
+    response = f"Processed: {user_message}"
+    
+    return {"output": response}
+```
+
+### Requirements
+- Must respond within 30 seconds
+- Must return JSON with an "output" field
+- If these aren't met, the system falls back to LLM
+
 ## Troubleshooting
 
 ### Webhook Not Setting
