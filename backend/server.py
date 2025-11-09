@@ -468,12 +468,13 @@ async def telegram_webhook(bot_token: str, request: Request):
                     laissez_user_id = linked_account.data[0]["laissez_user_id"]
                     print(f"✓ Telegram user {telegram_user_id} linked to Privy user {laissez_user_id[:20]}...")
                     
-                    # Get agent configuration for this user
+                    # Get agent configuration by bot_token (NOT filtered by user_id)
+                    # Any authenticated user can message any agent
                     agent_response = supabase.table("agents").select("*").eq(
                         "bot_token", bot_token
-                    ).eq("user_id", laissez_user_id).execute()
+                    ).execute()
                     
-                    print(f"Found {len(agent_response.data) if agent_response.data else 0} agents for user")
+                    print(f"Found {len(agent_response.data) if agent_response.data else 0} agents for bot token")
                     
                     if agent_response.data and len(agent_response.data) > 0:
                         agent_url = agent_response.data[0]["url"]
