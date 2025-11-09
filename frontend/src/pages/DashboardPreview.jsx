@@ -134,11 +134,23 @@ export default function DashboardPreview() {
             className="border border-gray-700 rounded-lg p-6 bg-[#0f0f0f]"
             data-testid={viewMode === 'user' ? 'spend-card' : 'earn-card'}
           >
-            <div className="flex items-center gap-2 mb-3">
-              <DollarSign className="h-4 w-4 text-gray-500" />
-              <h2 className="text-lg font-normal text-gray-300 tracking-wide">
-                {viewMode === 'user' ? 'SPEND' : 'EARN'}
-              </h2>
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <DollarSign className="h-4 w-4 text-gray-500" />
+                <h2 className="text-lg font-normal text-gray-300 tracking-wide">
+                  {viewMode === 'user' ? 'SPEND' : 'EARN'}
+                </h2>
+              </div>
+              {viewMode === 'developer' && (
+                <Button
+                  onClick={() => setIsAddAgentModalOpen(true)}
+                  className="bg-transparent border border-gray-600 text-gray-300 hover:bg-gray-800 rounded-full px-3 py-1 text-xs font-normal"
+                  data-testid="add-agent-button"
+                >
+                  <Plus className="h-3 w-3 mr-1" />
+                  Add Agent
+                </Button>
+              )}
             </div>
             <p className="text-gray-500 text-xs mb-2">(last month)</p>
             <p className="text-2xl font-light text-gray-200">
