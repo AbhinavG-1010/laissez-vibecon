@@ -214,6 +214,16 @@ async def health_check():
     return {"status": "ok", "service": "Laissez API"}
 
 
+@app.get("/api/auth/verify")
+async def verify_auth(user_id: str = Depends(verify_privy_token)):
+    """Test endpoint to verify authentication is working"""
+    return {
+        "authenticated": True,
+        "user_id": user_id,
+        "message": "Authentication successful"
+    }
+
+
 @app.post("/api/agents")
 async def create_agent_config(
     config: AgentConfig, 
