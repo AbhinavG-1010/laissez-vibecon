@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { usePrivy } from '@privy-io/react-auth';
-import { DollarSign, Wallet, Plus, Minus } from 'lucide-react';
+import { DollarSign, Wallet, Plus, ExternalLink, LogOut } from 'lucide-react';
 import { Button } from '../components/ui/button';
+import AddAgentModal from '../components/AddAgentModal';
+import AgentBusinessCard from '../components/AgentBusinessCard';
 
 const LOGO_URL = 'https://customer-assets.emergentagent.com/job_design-refresh-81/artifacts/hbva0jbg_laissez-logo.png';
 const PLACEHOLDER_AVATAR = 'https://api.dicebear.com/7.x/avataaars/svg?seed=laissez';
