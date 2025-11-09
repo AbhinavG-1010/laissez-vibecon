@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { usePrivy } from '@privy-io/react-auth';
 import { Button } from '../components/ui/button';
@@ -7,10 +7,20 @@ const LOGO_URL = 'https://customer-assets.emergentagent.com/job_design-refresh-8
 
 export default function LandingPage() {
   const navigate = useNavigate();
-  const { login } = usePrivy();
+  const { login, authenticated, ready } = usePrivy();
 
-  const handleSignIn = () => {
-    login({ loginMethods: ['google'] });
+  useEffect(() => {
+    if (ready && authenticated) {
+      navigate('/dashboard');
+    }
+  }, [ready, authenticated, navigate]);
+
+  const handleSignIn = async () => {
+    try {
+      await login({ loginMethods: ['google'] });
+    } catch (error) {
+      console.error('Login error:', error);
+    }
   };
 
   const handleBookDemo = () => {
