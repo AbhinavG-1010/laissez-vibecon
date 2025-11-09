@@ -79,6 +79,9 @@ SUPABASE_KEY=your_supabase_anon_key
 
 **Frontend** (`/app/frontend/.env`):
 ```
+# Privy App ID for authentication
+REACT_APP_PRIVY_APP_ID=your-privy-app-id
+
 # Not used in production - app uses relative URLs
 REACT_APP_BACKEND_URL=http://localhost:8001
 ```

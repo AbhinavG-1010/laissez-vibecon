@@ -1,38 +1,84 @@
-/* Custom styles for Laissez app */
+/* Custom styles for Laissez app - Minimalistic Pixel Art Theme */
 
-/* Smooth transitions */
+/* Minimalistic design with sharp edges */
 * {
-  transition-property: color, background-color, border-color, opacity;
-  transition-duration: 150ms;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-property: color, background-color, border-color;
+  transition-duration: 100ms;
+  transition-timing-function: linear;
 }
 
-/* Input focus states */
-input:focus {
-  outline-offset: 2px;
+/* Remove smooth shadows and rounded corners for pixel art aesthetic */
+button, .card, input, select, textarea {
+  box-shadow: none !important;
 }
 
-/* Button hover effects */
+/* Sharp, clean borders */
+.border-2 {
+  border-width: 2px;
+  border-style: solid;
+}
+
+/* Table styling - minimalistic */
+table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+table th,
+table td {
+  border-bottom: 1px solid var(--border);
+}
+
+table tr:last-child td {
+  border-bottom: none;
+}
+
+/* Button hover - simple color swap */
 button:not(:disabled):hover {
-  transform: translateY(-1px);
+  transform: none;
 }
 
-button:not(:disabled):active {
-  transform: translateY(0);
+/* Remove rounded corners for pixel art look */
+.rounded-md {
+  border-radius: 0;
 }
 
-/* Card shadow on hover */
-.bg-card {
-  transition: all 0.3s ease;
+.rounded-lg {
+  border-radius: 0;
 }
 
-/* Number input styling */
-input[type="number"]::-webkit-inner-spin-button,
-input[type="number"]::-webkit-outer-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
+.rounded-xl {
+  border-radius: 0;
 }
 
-input[type="number"] {
-  -moz-appearance: textfield;
+.rounded-full {
+  border-radius: 0;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Input focus - simple border */
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--foreground);
+}
+
+/* Card styling - hard rectangles */
+.card {
+  box-shadow: none;
+  border: 2px solid var(--foreground);
+}
+
+/* High contrast, minimalistic design */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
