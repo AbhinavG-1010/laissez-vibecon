@@ -26,8 +26,27 @@ When someone sends a message to your bot:
 ### 3. Message Flow
 
 ```
-User → Telegram Bot → Telegram Servers → Your Webhook → Your Backend → Reply to User
+User → Telegram Bot → Telegram Servers → Your Webhook → Your Backend
+                                                              ↓
+                                                    Try Agent URL
+                                                    POST {"input": message}
+                                                              ↓
+                                                 Success? → Use agent's "output"
+                                                              ↓
+                                                  Fail? → LLM Fallback (GPT-5-mini)
+                                                              ↓
+                                                    Reply to User via Telegram
 ```
+
+**Agent URL Contract:**
+- Request: `POST {agent_url}` with body `{"input": "<telegram_message>"}`
+- Expected Response: `{"output": "<response_text>"}`
+- Timeout: 30 seconds
+
+**LLM Fallback:**
+- Triggered when agent URL fails (timeout, error, unreachable, malformed response)
+- Uses GPT-5-mini via Emergent LLM key
+- Provides helpful response while acknowledging the agent is unavailable
 
 ## Testing Your Bot
 
