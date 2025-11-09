@@ -391,6 +391,8 @@ async def telegram_webhook(bot_token: str, request: Request):
                     
                     if not linked_account.data or len(linked_account.data) == 0:
                         # Not linked - create pending link and send instructions
+                        print(f"Telegram user {telegram_user_id} not linked, creating pending link...")
+                        
                         code = generate_link_code()
                         expires_at = (datetime.utcnow() + timedelta(hours=24)).isoformat()
                         
@@ -401,20 +403,26 @@ async def telegram_webhook(bot_token: str, request: Request):
                             "platform_user_id": telegram_user_id,
                             "expires_at": expires_at
                         }
-                        supabase.table("pending_links").insert(pending_data).execute()
                         
-                        # Get the app URL from request headers
+                        insert_result = supabase.table("pending_links").insert(pending_data).execute()
+                        print(f"✓ Pending link created with code: {code[:20]}...")
+                        
+                        # Construct the frontend URL
+                        # The webhook comes to backend (port 8001), but we need to link to frontend
                         forwarded_proto = request.headers.get("x-forwarded-proto", "")
                         forwarded_host = request.headers.get("x-forwarded-host", "")
                         
-                        if forwarded_proto and forwarded_host:
-                            app_url = f"{forwarded_proto}://{forwarded_host}"
+                        if forwarded_host and "emergentagent.com" in forwarded_host:
+                            # Production: use the same domain
+                            app_url = f"https://{forwarded_host}"
+                        elif forwarded_host:
+                            app_url = f"{forwarded_proto or 'https'}://{forwarded_host}"
                         else:
-                            host = request.headers.get("host", "localhost:3000")
-                            scheme = "https" if "emergentagent.com" in host else "http"
-                            app_url = f"{scheme}://{host}"
+                            # Local development: use localhost:3000 for frontend
+                            app_url = "http://localhost:3000"
                         
                         link_url = f"{app_url}/link?code={code}"
+                        print(f"✓ Link URL: {link_url}")
                         
                         response_text = (
                             f"🔗 Account Linking Required\n\n"
@@ -424,14 +432,16 @@ async def telegram_webhook(bot_token: str, request: Request):
                         )
                         
                         # Send reply to Telegram
+                        print(f"Sending linking message to Telegram chat {chat_id}...")
                         async with httpx.AsyncClient() as client:
-                            await client.post(
+                            telegram_response = await client.post(
                                 f"https://api.telegram.org/bot{bot_token}/sendMessage",
                                 json={
                                     "chat_id": chat_id,
                                     "text": response_text
                                 }
                             )
+                            print(f"✓ Telegram API response: {telegram_response.status_code}")
                         
                         return {"ok": True}
                     
