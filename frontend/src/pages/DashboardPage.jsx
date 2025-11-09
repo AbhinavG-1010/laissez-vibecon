@@ -66,14 +66,23 @@ export default function DashboardPage() {
           <span className="text-xl font-light tracking-wider" style={{ fontFamily: 'Georgia, serif' }}>LAISSEZ</span>
         </div>
 
-        {/* Profile */}
-        <div className="flex items-center gap-3">
+        {/* Profile & Sign Out */}
+        <div className="flex items-center gap-4">
           <img 
             src={PLACEHOLDER_AVATAR} 
             alt="Profile" 
             className="h-10 w-10 rounded-full border border-gray-600"
             data-testid="profile-avatar"
           />
+          <Button
+            onClick={logout}
+            variant="ghost"
+            className="text-gray-400 hover:text-gray-200 text-sm font-normal"
+            data-testid="signout-button"
+          >
+            <LogOut className="h-4 w-4 mr-2" />
+            Sign Out
+          </Button>
         </div>
       </div>
 
