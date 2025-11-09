@@ -46,6 +46,11 @@ export default function DashboardPage() {
   const totalSpent = USER_TRANSACTIONS.reduce((sum, tx) => sum + tx.cost, 0).toFixed(3);
   const totalEarned = DEV_TRANSACTIONS.reduce((sum, tx) => sum + tx.earned, 0).toFixed(3);
 
+  const handleAgentClick = (agentName) => {
+    setSelectedAgent({ name: agentName, id: agentName.replace(/\s+/g, '_').toLowerCase() });
+    setIsBusinessCardOpen(true);
+  };
+
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-gray-300 p-8" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
       {/* Header */}
