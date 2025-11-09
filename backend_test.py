@@ -413,19 +413,21 @@ def test_webhook_url_pattern() -> Dict[str, Any]:
 
 def run_all_tests() -> Dict[str, Any]:
     """Run all backend tests and return comprehensive results"""
-    print("🚀 Starting Backend API Tests for Telegram Bot Webhook Integration")
-    print("=" * 70)
+    print("🚀 Starting Backend API Tests for Telegram Bot Webhook Integration with LLM Fallback")
+    print("=" * 80)
     
     results = {
         "health_check": test_health_check(),
+        "agent_lookup": test_agent_lookup_functionality(),
+        "telegram_webhook": test_telegram_webhook_endpoint(),
+        "llm_fallback": test_llm_fallback_functionality(),
         "agent_configuration": test_save_agent_configuration(),
-        "webhook_url_pattern": test_webhook_url_pattern(),
-        "telegram_webhook": test_telegram_webhook_endpoint()
+        "webhook_url_pattern": test_webhook_url_pattern()
     }
     
-    print("\n" + "=" * 70)
-    print("📊 TEST SUMMARY")
-    print("=" * 70)
+    print("\n" + "=" * 80)
+    print("📊 TEST SUMMARY - LLM FALLBACK FUNCTIONALITY")
+    print("=" * 80)
     
     total_tests = len(results)
     passed_tests = sum(1 for result in results.values() if result["success"])
@@ -437,6 +439,26 @@ def run_all_tests() -> Dict[str, Any]:
             print(f"      Error: {result['error']}")
     
     print(f"\nOverall: {passed_tests}/{total_tests} tests passed")
+    
+    # Special summary for LLM fallback functionality
+    print("\n" + "=" * 80)
+    print("🤖 LLM FALLBACK FUNCTIONALITY SUMMARY")
+    print("=" * 80)
+    
+    if results["llm_fallback"]["success"]:
+        print("✅ LLM Fallback: Working correctly")
+        print("   - Webhook endpoint accessible")
+        print("   - Agent URL lookup attempted")
+        print("   - LLM fallback triggered when agent URL fails")
+    else:
+        print("❌ LLM Fallback: Issues detected")
+        if results["llm_fallback"]["error"]:
+            print(f"   Error: {results['llm_fallback']['error']}")
+    
+    if results["agent_lookup"]["success"]:
+        print("✅ Agent Lookup: Supabase integration working")
+    else:
+        print("❌ Agent Lookup: Supabase integration issues")
     
     return results
 
