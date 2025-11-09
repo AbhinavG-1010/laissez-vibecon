@@ -34,16 +34,9 @@ const AGENT_STATS = [
 ];
 
 export default function DashboardPage() {
-  const { user, logout } = usePrivy();
+  const { user } = usePrivy();
   const [viewMode, setViewMode] = useState('user'); // 'user' or 'developer'
   const [devTab, setDevTab] = useState('transactions'); // 'transactions' or 'agents'
-
-  const displayName = useMemo(() => {
-    if (!user) return 'User';
-    if (user.email?.address) return user.email.address.split('@')[0];
-    if (user.wallet?.address) return user.wallet.address.slice(0, 8);
-    return 'User';
-  }, [user]);
 
   const totalSpent = USER_TRANSACTIONS.reduce((sum, tx) => sum + tx.cost, 0).toFixed(3);
   const totalEarned = DEV_TRANSACTIONS.reduce((sum, tx) => sum + tx.earned, 0).toFixed(3);
