@@ -50,14 +50,18 @@ async def verify_privy_token(authorization: Optional[str] = Header(None)) -> str
     Verify Privy access token and return user ID
     """
     if not authorization:
+        print("ERROR: Missing authorization header")
         raise HTTPException(status_code=401, detail="Missing authorization header")
     
     if not authorization.startswith("Bearer "):
+        print(f"ERROR: Invalid authorization header format: {authorization[:20]}...")
         raise HTTPException(status_code=401, detail="Invalid authorization header format")
     
     token = authorization.replace("Bearer ", "")
+    print(f"Verifying token: {token[:20]}...")
     
     if not PRIVY_APP_ID or not PRIVY_APP_SECRET:
+        print("ERROR: Privy credentials not configured")
         raise HTTPException(status_code=500, detail="Privy not configured")
     
     try:
@@ -71,14 +75,24 @@ async def verify_privy_token(authorization: Optional[str] = Header(None)) -> str
                 }
             )
             
+            print(f"Privy API response status: {response.status_code}")
+            
             if response.status_code != 200:
-                raise HTTPException(status_code=401, detail="Invalid or expired token")
+                print(f"Privy API error response: {response.text}")
+                raise HTTPException(status_code=401, detail=f"Invalid or expired token: {response.text}")
             
             user_data = response.json()
-            return user_data.get("id")
+            user_id = user_data.get("id")
+            print(f"Token verified successfully for user: {user_id}")
+            return user_id
     
     except httpx.RequestError as e:
-        print(f"Privy verification error: {e}")
+        print(f"Privy verification network error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to verify token")
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Unexpected error during token verification: {e}")
         raise HTTPException(status_code=500, detail="Failed to verify token")
 
 
