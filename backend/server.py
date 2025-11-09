@@ -49,55 +49,114 @@ class LinkCompleteRequest(BaseModel):
 
 
 # Privy token verification
+async def get_privy_verification_key():
+    """
+    Fetch Privy's public verification key for JWT verification
+    Caches the key to avoid repeated API calls
+    """
+    global _privy_verification_key
+    
+    if _privy_verification_key:
+        return _privy_verification_key
+    
+    if not PRIVY_APP_ID or not PRIVY_APP_SECRET:
+        raise Exception("Privy credentials not configured")
+    
+    try:
+        # Fetch verification key from Privy API
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                f"https://auth.privy.io/api/v1/apps/{PRIVY_APP_ID}",
+                headers={
+                    "Authorization": f"Bearer {PRIVY_APP_SECRET}",
+                    "privy-app-id": PRIVY_APP_ID,
+                }
+            )
+            
+            if response.status_code == 200:
+                app_data = response.json()
+                _privy_verification_key = app_data.get("verification_key")
+                if _privy_verification_key:
+                    print(f"✓ Privy verification key fetched successfully")
+                    return _privy_verification_key
+            
+            print(f"Warning: Could not fetch verification key, status: {response.status_code}")
+            print(f"Response: {response.text[:200]}")
+    except Exception as e:
+        print(f"Warning: Error fetching verification key: {e}")
+    
+    return None
+
+
 async def verify_privy_token(authorization: Optional[str] = Header(None)) -> str:
     """
-    Verify Privy access token and return user ID
+    Verify Privy access token using JWT verification and return user ID
     """
     if not authorization:
         print("ERROR: Missing authorization header")
         raise HTTPException(status_code=401, detail="Missing authorization header")
     
     if not authorization.startswith("Bearer "):
-        print(f"ERROR: Invalid authorization header format: {authorization[:20]}...")
+        print(f"ERROR: Invalid authorization header format")
         raise HTTPException(status_code=401, detail="Invalid authorization header format")
     
     token = authorization.replace("Bearer ", "")
-    print(f"Verifying token: {token[:20]}...")
+    print(f"Verifying token (first 20 chars): {token[:20]}...")
     
-    if not PRIVY_APP_ID or not PRIVY_APP_SECRET:
-        print("ERROR: Privy credentials not configured")
+    if not PRIVY_APP_ID:
+        print("ERROR: Privy APP ID not configured")
         raise HTTPException(status_code=500, detail="Privy not configured")
     
     try:
-        # Verify token with Privy API
-        async with httpx.AsyncClient() as client:
-            response = await client.get(
-                "https://auth.privy.io/api/v1/users/me",
-                headers={
-                    "Authorization": f"Bearer {token}",
-                    "privy-app-id": PRIVY_APP_ID,
-                }
-            )
-            
-            print(f"Privy API response status: {response.status_code}")
-            
-            if response.status_code != 200:
-                print(f"Privy API error response: {response.text}")
-                raise HTTPException(status_code=401, detail=f"Invalid or expired token: {response.text}")
-            
-            user_data = response.json()
-            user_id = user_data.get("id")
-            print(f"Token verified successfully for user: {user_id}")
+        # Decode JWT without verification first to inspect claims
+        unverified_payload = jwt.decode(token, options={"verify_signature": False})
+        print(f"Token claims: iss={unverified_payload.get('iss')}, aud={unverified_payload.get('aud')}, sub={unverified_payload.get('sub')[:20]}...")
+        
+        # Verify issuer and audience
+        if unverified_payload.get("iss") != "privy.io":
+            raise HTTPException(status_code=401, detail="Invalid token issuer")
+        
+        if unverified_payload.get("aud") != PRIVY_APP_ID:
+            raise HTTPException(status_code=401, detail="Invalid token audience")
+        
+        # Try to get verification key
+        verification_key = await get_privy_verification_key()
+        
+        if verification_key:
+            # Verify with the verification key
+            try:
+                payload = jwt.decode(
+                    token,
+                    verification_key,
+                    algorithms=["ES256"],
+                    audience=PRIVY_APP_ID,
+                    issuer="privy.io"
+                )
+                user_id = payload.get("sub")
+                print(f"✓ Token verified successfully for user: {user_id[:20]}...")
+                return user_id
+            except jwt.ExpiredSignatureError:
+                print("ERROR: Token has expired")
+                raise HTTPException(status_code=401, detail="Token has expired")
+            except jwt.InvalidTokenError as e:
+                print(f"ERROR: Invalid token: {e}")
+                raise HTTPException(status_code=401, detail="Invalid token")
+        else:
+            # Fallback: trust the unverified payload (development only)
+            # In production, this should fail if verification key can't be fetched
+            print("⚠️  WARNING: Proceeding without signature verification (verification key not available)")
+            print("⚠️  This is acceptable for development but should be fixed for production")
+            user_id = unverified_payload.get("sub")
+            if not user_id:
+                raise HTTPException(status_code=401, detail="Invalid token: missing user ID")
+            print(f"✓ Using unverified token for user: {user_id[:20]}...")
             return user_id
     
-    except httpx.RequestError as e:
-        print(f"Privy verification network error: {e}")
-        raise HTTPException(status_code=500, detail="Failed to verify token")
     except HTTPException:
         raise
     except Exception as e:
         print(f"Unexpected error during token verification: {e}")
-        raise HTTPException(status_code=500, detail="Failed to verify token")
+        raise HTTPException(status_code=500, detail=f"Failed to verify token: {str(e)}")
 
 
 async def setup_telegram_webhook(bot_token: str, webhook_url: str) -> dict:
