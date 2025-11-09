@@ -160,70 +160,92 @@ async def telegram_webhook(bot_token: str, request: Request):
     try:
         # Parse the incoming update from Telegram
         update_data = await request.json()
+        print(f"[DEBUG] Received Telegram update: {update_data}")
         
         # Check if there's a message with text
         if "message" in update_data and "text" in update_data["message"]:
             chat_id = update_data["message"]["chat"]["id"]
             user_message = update_data["message"]["text"]
+            print(f"[DEBUG] Chat ID: {chat_id}, Message: '{user_message}'")
             
             # Get agent configuration from Supabase
             if not supabase:
+                print(f"[DEBUG] Supabase not configured, using LLM fallback")
                 response_text = await get_llm_fallback_response(user_message)
             else:
                 try:
                     # Query for agent by bot_token
+                    print(f"[DEBUG] Querying database for bot_token: {bot_token}")
                     agent_response = supabase.table("agents").select("*").eq("bot_token", bot_token).execute()
+                    print(f"[DEBUG] Database query result: {agent_response.data}")
                     
                     if agent_response.data and len(agent_response.data) > 0:
                         agent_url = agent_response.data[0]["url"]
+                        print(f"[DEBUG] Found agent URL: {agent_url}")
                         
                         # Try to proxy to agent URL
                         try:
+                            print(f"[DEBUG] Attempting to POST to agent URL: {agent_url}")
+                            print(f"[DEBUG] Request payload: {{'input': '{user_message}'}}")
+                            
                             async with httpx.AsyncClient(timeout=30.0) as client:
                                 agent_result = await client.post(
                                     agent_url,
                                     json={"input": user_message}
                                 )
                                 
+                                print(f"[DEBUG] Agent response status: {agent_result.status_code}")
+                                print(f"[DEBUG] Agent response body: {agent_result.text}")
+                                
                                 # Check if response is successful and has output field
                                 if agent_result.status_code == 200:
                                     agent_data = agent_result.json()
+                                    print(f"[DEBUG] Agent response JSON: {agent_data}")
                                     if "output" in agent_data:
                                         response_text = agent_data["output"]
+                                        print(f"[DEBUG] Using agent output: '{response_text}'")
                                     else:
                                         # Malformed response, use LLM fallback
-                                        print(f"Agent response missing 'output' field: {agent_data}")
+                                        print(f"[DEBUG] Agent response missing 'output' field, using LLM fallback")
                                         response_text = await get_llm_fallback_response(user_message)
                                 else:
                                     # Agent URL returned error
-                                    print(f"Agent URL returned {agent_result.status_code}")
+                                    print(f"[DEBUG] Agent URL returned error status {agent_result.status_code}, using LLM fallback")
                                     response_text = await get_llm_fallback_response(user_message)
                         except Exception as proxy_error:
                             # Agent URL failed (timeout, connection error, etc.)
-                            print(f"Agent URL proxy error: {proxy_error}")
+                            print(f"[DEBUG] Agent URL proxy error: {proxy_error}")
+                            print(f"[DEBUG] Using LLM fallback")
                             response_text = await get_llm_fallback_response(user_message)
                     else:
                         # Bot token not found in database
+                        print(f"[DEBUG] Bot token not found in database")
                         response_text = "Configuration not found. Please set up your agent first."
                 except Exception as db_error:
-                    print(f"Database error: {db_error}")
+                    print(f"[DEBUG] Database error: {db_error}")
                     response_text = await get_llm_fallback_response(user_message)
+            
+            print(f"[DEBUG] Final response text: '{response_text}'")
+            print(f"[DEBUG] Sending reply to Telegram chat {chat_id}")
             
             # Send reply to Telegram
             async with httpx.AsyncClient() as client:
-                await client.post(
+                telegram_response = await client.post(
                     f"https://api.telegram.org/bot{bot_token}/sendMessage",
                     json={
                         "chat_id": chat_id,
                         "text": response_text
                     }
                 )
+                print(f"[DEBUG] Telegram API response: {telegram_response.status_code}")
         
         # Always return 200 OK to Telegram
         return {"ok": True}
     
     except Exception as e:
-        print(f"Error processing webhook: {e}")
+        print(f"[DEBUG] Error processing webhook: {e}")
+        import traceback
+        traceback.print_exc()
         # Return 200 anyway to avoid Telegram retrying
         return {"ok": False, "error": str(e)}
 
