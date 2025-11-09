@@ -121,11 +121,41 @@ async def get_agent_configs():
         raise HTTPException(status_code=500, detail=f"Failed to fetch configurations: {str(e)}")
 
 
+async def get_llm_fallback_response(user_message: str) -> str:
+    """Generate fallback response using LLM when agent URL fails"""
+    from emergentintegrations.llm.chat import LlmChat, UserMessage
+    
+    api_key = os.environ.get("EMERGENT_LLM_KEY")
+    if not api_key:
+        return "I apologize, but I'm unable to connect to your configured agent at the moment. Please try again later."
+    
+    try:
+        # Initialize LLM chat
+        chat = LlmChat(
+            api_key=api_key,
+            session_id="telegram-fallback",
+            system_message=f"""You are a helpful assistant filling in for an unavailable agent. 
+The user asked: '{user_message}'
+
+Unfortunately, their configured agent is currently unavailable or experiencing issues. 
+Please provide the most helpful and accurate response you can to their query, while politely acknowledging that you're a backup assistant and their primary agent couldn't be reached.
+
+Be concise, helpful, and empathetic about the service disruption."""
+        ).with_model("openai", "gpt-5-mini")
+        
+        # Send message and get response
+        response = await chat.send_message(UserMessage(text=user_message))
+        return response
+    except Exception as e:
+        print(f"LLM fallback error: {e}")
+        return "I apologize, but I'm unable to process your request at the moment. Please try again later."
+
+
 @app.post("/api/telegram-webhook/{bot_token}")
 async def telegram_webhook(bot_token: str, request: Request):
     """
-    Receive updates from Telegram and reply with greeting.
-    Telegram will POST updates to this endpoint.
+    Receive updates from Telegram and proxy to configured agent URL.
+    Falls back to LLM if agent URL fails.
     """
     try:
         # Parse the incoming update from Telegram
@@ -134,14 +164,58 @@ async def telegram_webhook(bot_token: str, request: Request):
         # Check if there's a message with text
         if "message" in update_data and "text" in update_data["message"]:
             chat_id = update_data["message"]["chat"]["id"]
+            user_message = update_data["message"]["text"]
             
-            # Send reply using Telegram API
+            # Get agent configuration from Supabase
+            if not supabase:
+                response_text = await get_llm_fallback_response(user_message)
+            else:
+                try:
+                    # Query for agent by bot_token
+                    agent_response = supabase.table("agents").select("*").eq("bot_token", bot_token).execute()
+                    
+                    if agent_response.data and len(agent_response.data) > 0:
+                        agent_url = agent_response.data[0]["url"]
+                        
+                        # Try to proxy to agent URL
+                        try:
+                            async with httpx.AsyncClient(timeout=30.0) as client:
+                                agent_result = await client.post(
+                                    agent_url,
+                                    json={"input": user_message}
+                                )
+                                
+                                # Check if response is successful and has output field
+                                if agent_result.status_code == 200:
+                                    agent_data = agent_result.json()
+                                    if "output" in agent_data:
+                                        response_text = agent_data["output"]
+                                    else:
+                                        # Malformed response, use LLM fallback
+                                        print(f"Agent response missing 'output' field: {agent_data}")
+                                        response_text = await get_llm_fallback_response(user_message)
+                                else:
+                                    # Agent URL returned error
+                                    print(f"Agent URL returned {agent_result.status_code}")
+                                    response_text = await get_llm_fallback_response(user_message)
+                        except Exception as proxy_error:
+                            # Agent URL failed (timeout, connection error, etc.)
+                            print(f"Agent URL proxy error: {proxy_error}")
+                            response_text = await get_llm_fallback_response(user_message)
+                    else:
+                        # Bot token not found in database
+                        response_text = "Configuration not found. Please set up your agent first."
+                except Exception as db_error:
+                    print(f"Database error: {db_error}")
+                    response_text = await get_llm_fallback_response(user_message)
+            
+            # Send reply to Telegram
             async with httpx.AsyncClient() as client:
                 await client.post(
                     f"https://api.telegram.org/bot{bot_token}/sendMessage",
                     json={
                         "chat_id": chat_id,
-                        "text": "Hello from Abhinav and Matthew"
+                        "text": response_text
                     }
                 )
         
