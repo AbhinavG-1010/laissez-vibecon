@@ -179,24 +179,37 @@ async def telegram_webhook(bot_token: str, request: Request):
                         
                         # Try to proxy to agent URL
                         try:
+                            print(f"[PROXY] Sending to agent URL: {agent_url}")
+                            print(f"[PROXY] Message: '{user_message}'")
+                            print(f"[PROXY] Payload: {{'input': '{user_message}'}}")
+                            
                             async with httpx.AsyncClient(timeout=30.0) as client:
                                 agent_result = await client.post(
                                     agent_url,
                                     json={"input": user_message}
                                 )
                                 
+                                print(f"[PROXY] Response status: {agent_result.status_code}")
+                                print(f"[PROXY] Response headers: {dict(agent_result.headers)}")
+                                print(f"[PROXY] Response body: {agent_result.text[:500]}")
+                                
                                 # Check if response is successful and has output field
                                 if agent_result.status_code == 200:
                                     agent_data = agent_result.json()
+                                    print(f"[PROXY] Parsed JSON keys: {list(agent_data.keys())}")
                                     if "output" in agent_data:
                                         response_text = agent_data["output"]
+                                        print(f"[PROXY] ✅ Using agent output: '{response_text[:100]}'")
                                     else:
                                         # Malformed response, use LLM fallback
-                                        print(f"Agent response missing 'output' field: {agent_data}")
+                                        print(f"[PROXY] ❌ Agent response missing 'output' field")
+                                        print(f"[PROXY] Available keys: {list(agent_data.keys())}")
+                                        print(f"[PROXY] Full response: {agent_data}")
                                         response_text = await get_llm_fallback_response(user_message)
                                 else:
                                     # Agent URL returned error
-                                    print(f"Agent URL returned {agent_result.status_code}: {agent_result.text}")
+                                    print(f"[PROXY] ❌ Agent URL returned error {agent_result.status_code}")
+                                    print(f"[PROXY] Error body: {agent_result.text}")
                                     response_text = await get_llm_fallback_response(user_message)
                         except Exception as proxy_error:
                             # Agent URL failed (timeout, connection error, etc.)
