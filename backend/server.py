@@ -231,30 +231,31 @@ async def complete_account_link(
         pending_link = pending_response.data[0]
         
         # Check if link is expired
-        expires_at = datetime.fromisoformat(pending_link["expires_at"].replace("Z", "+00:00"))
-        if datetime.now(expires_at.tzinfo) > expires_at:
-            # Delete expired link
-            supabase.table("pending_links").delete().eq("code", link_request.code).execute()
-            raise HTTPException(status_code=410, detail="Link code has expired")
+        if pending_link.get("expires_at"):
+            expires_at = datetime.fromisoformat(pending_link["expires_at"].replace("Z", "+00:00"))
+            if datetime.now(expires_at.tzinfo) > expires_at:
+                # Delete expired link
+                supabase.table("pending_links").delete().eq("code", link_request.code).execute()
+                raise HTTPException(status_code=410, detail="Link code has expired")
         
         # Check if this platform account is already linked
         existing_link = supabase.table("linked_accounts").select("*").eq(
             "platform", pending_link["platform"]
-        ).eq("platform_id", pending_link["platform_id"]).execute()
+        ).eq("platform_user_id", pending_link["platform_user_id"]).execute()
         
         if existing_link.data and len(existing_link.data) > 0:
             # Update existing link
             supabase.table("linked_accounts").update({
-                "laissez_id": user_id
+                "laissez_user_id": user_id
             }).eq("platform", pending_link["platform"]).eq(
-                "platform_id", pending_link["platform_id"]
+                "platform_user_id", pending_link["platform_user_id"]
             ).execute()
         else:
             # Create new linked account
             link_data = {
-                "laissez_id": user_id,
+                "laissez_user_id": user_id,
                 "platform": pending_link["platform"],
-                "platform_id": pending_link["platform_id"]
+                "platform_user_id": pending_link["platform_user_id"]
             }
             supabase.table("linked_accounts").insert(link_data).execute()
         
@@ -265,7 +266,7 @@ async def complete_account_link(
             "success": True,
             "message": "Account linked successfully",
             "platform": pending_link["platform"],
-            "platform_id": pending_link["platform_id"]
+            "platform_user_id": pending_link["platform_user_id"]
         }
     
     except HTTPException:
