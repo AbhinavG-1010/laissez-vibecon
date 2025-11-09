@@ -293,6 +293,17 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* Modals */}
+      <AddAgentModal 
+        isOpen={isAddAgentModalOpen} 
+        onClose={() => setIsAddAgentModalOpen(false)} 
+      />
+      <AgentBusinessCard
+        isOpen={isBusinessCardOpen}
+        onClose={() => setIsBusinessCardOpen(false)}
+        agent={selectedAgent}
+      />
     </div>
   );
 }
