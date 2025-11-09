@@ -298,7 +298,7 @@ async def telegram_webhook(bot_token: str, request: Request):
                 try:
                     linked_account = supabase.table("linked_accounts").select("*").eq(
                         "platform", "telegram"
-                    ).eq("platform_id", telegram_user_id).execute()
+                    ).eq("platform_user_id", telegram_user_id).execute()
                     
                     if not linked_account.data or len(linked_account.data) == 0:
                         # Not linked - create pending link and send instructions
@@ -309,7 +309,7 @@ async def telegram_webhook(bot_token: str, request: Request):
                         pending_data = {
                             "code": code,
                             "platform": "telegram",
-                            "platform_id": telegram_user_id,
+                            "platform_user_id": telegram_user_id,
                             "expires_at": expires_at
                         }
                         supabase.table("pending_links").insert(pending_data).execute()
@@ -346,13 +346,13 @@ async def telegram_webhook(bot_token: str, request: Request):
                         
                         return {"ok": True}
                     
-                    # Account is linked - get laissez_id (Privy user ID)
-                    laissez_id = linked_account.data[0]["laissez_id"]
+                    # Account is linked - get laissez_user_id (Privy user ID)
+                    laissez_user_id = linked_account.data[0]["laissez_user_id"]
                     
                     # Get agent configuration for this user
                     agent_response = supabase.table("agents").select("*").eq(
                         "bot_token", bot_token
-                    ).eq("user_id", laissez_id).execute()
+                    ).eq("user_id", laissez_user_id).execute()
                     
                     if agent_response.data and len(agent_response.data) > 0:
                         agent_url = agent_response.data[0]["url"]
