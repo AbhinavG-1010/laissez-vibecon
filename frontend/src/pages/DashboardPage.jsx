@@ -247,7 +247,19 @@ export default function DashboardPage() {
                 <tbody>
                   {AGENT_STATS.map((agent) => (
                     <tr key={agent.id} className="border-b border-gray-800 hover:bg-[#151515] transition-colors">
-                      <td className="p-4 text-sm text-gray-300">{agent.agent}</td>
+                      <td className="p-4 text-sm text-gray-300">
+                        <div className="flex items-center gap-2">
+                          <span>{agent.agent}</span>
+                          <button
+                            onClick={() => handleAgentClick(agent.agent)}
+                            className="text-gray-500 hover:text-gray-300 transition-colors"
+                            data-testid={`agent-card-icon-${agent.id}`}
+                            title="View business card"
+                          >
+                            <ExternalLink className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </td>
                       <td className="p-4 text-sm text-gray-300">{agent.queries}</td>
                       <td className="p-4 text-sm text-gray-300">{agent.users}</td>
                       <td className="p-4 text-sm text-gray-300">${agent.earned.toFixed(2)}</td>
