@@ -37,9 +37,21 @@ const AGENT_STATS = [
 export default function DashboardPreview() {
   const [viewMode, setViewMode] = useState('user'); // 'user' or 'developer'
   const [devTab, setDevTab] = useState('agents'); // 'agents' or 'transactions'
+  const [isAddAgentModalOpen, setIsAddAgentModalOpen] = useState(false);
+  const [selectedAgent, setSelectedAgent] = useState(null);
+  const [isBusinessCardOpen, setIsBusinessCardOpen] = useState(false);
 
   const totalSpent = USER_TRANSACTIONS.reduce((sum, tx) => sum + tx.cost, 0).toFixed(3);
   const totalEarned = DEV_TRANSACTIONS.reduce((sum, tx) => sum + tx.earned, 0).toFixed(3);
+
+  const handleAgentClick = (agentName) => {
+    setSelectedAgent({ name: agentName, id: agentName.replace(/\s+/g, '_').toLowerCase() });
+    setIsBusinessCardOpen(true);
+  };
+
+  const handleSignOut = () => {
+    alert('Sign out functionality - will be connected to Privy logout');
+  };
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-gray-300 p-8" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
