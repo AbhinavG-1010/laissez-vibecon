@@ -81,6 +81,7 @@ function App() {
           </RequireAuth>
         }
       />
+      <Route path="/preview" element={<DashboardPreview />} />
       <Route
         path="/config"
         element={
