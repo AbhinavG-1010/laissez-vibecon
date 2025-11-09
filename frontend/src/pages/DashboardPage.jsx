@@ -36,9 +36,12 @@ const AGENT_STATS = [
 ];
 
 export default function DashboardPage() {
-  const { user } = usePrivy();
+  const { user, logout } = usePrivy();
   const [viewMode, setViewMode] = useState('user'); // 'user' or 'developer'
   const [devTab, setDevTab] = useState('agents'); // 'agents' or 'transactions'
+  const [isAddAgentModalOpen, setIsAddAgentModalOpen] = useState(false);
+  const [selectedAgent, setSelectedAgent] = useState(null);
+  const [isBusinessCardOpen, setIsBusinessCardOpen] = useState(false);
 
   const totalSpent = USER_TRANSACTIONS.reduce((sum, tx) => sum + tx.cost, 0).toFixed(3);
   const totalEarned = DEV_TRANSACTIONS.reduce((sum, tx) => sum + tx.earned, 0).toFixed(3);
