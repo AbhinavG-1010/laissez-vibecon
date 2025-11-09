@@ -231,6 +231,8 @@ async def create_agent_config(
     user_id: str = Depends(verify_privy_token)
 ):
     """Save agent configuration to Supabase and set up Telegram webhook"""
+    print(f"✓ create_agent_config called for user: {user_id[:20]}...")
+    
     if not supabase:
         raise HTTPException(status_code=500, detail="Supabase not configured")
     
